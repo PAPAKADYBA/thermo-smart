@@ -1,0 +1,81 @@
+// 05_room2d.edp : cas test 4, coupe de piece 2D, regime stationnaire
+// Unites : m, W/(m.K), W/(m2.K), degres C. Resultats par metre de profondeur.
+// Etiquettes : 1 bas (flux nul), 2 droite ext., 3 haut ext., 4 gauche ext., 5 surfaces interieures
+
+real Wt = 4.64;
+real Ht = 3.32;
+real Text = 35.0;
+real Tint = 25.0;
+real hext = 25.0;
+real hint = 8.0;
+
+// Mailles de 2 cm : toutes les interfaces tombent sur des aretes
+mesh Th0 = square(232, 166, [Wt*x, Ht*y]);
+
+// On retire la piece (air) : x de 0.32 a 4.32, y de 0.20 a 3.00
+mesh Th = trunc(Th0, (x < 0.32) | (x > 4.32) | (y < 0.20) | (y > 3.00), label=5);
+
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+// Materiaux par triangle (evalues au centre du triangle)
+V0 inFloor   = (y < 0.20)*1.;
+V0 inRoof    = (y > 3.00)*1.;
+V0 wallBeton = (x < 0.20)*1. + (x > 4.44)*1.;
+V0 wallIso   = (x > 0.20 && x < 0.30)*1. + (x > 4.34 && x < 4.44)*1.;
+V0 roofBeton = (y > 3.12)*1.;
+V0 roofIso   = (y > 3.02 && y < 3.12)*1.;
+
+V0 isBeton = inFloor + (1 - inFloor)*(inRoof*roofBeton + (1 - inRoof)*wallBeton);
+V0 isIso   = (1 - inFloor)*(inRoof*roofIso + (1 - inRoof)*wallIso);
+V0 isPlat  = 1 - isBeton - isIso;
+
+V0 lam = 1.4*isBeton + 0.04*isIso + 0.5*isPlat;
+
+cout << "--- Maillage et geometrie ---" << endl;
+cout << "Sommets   : " << Th.nv << "  (attendu environ 11250)" << endl;
+cout << "Triangles : " << Th.nt << "  (attendu 21024)" << endl;
+cout << "Aire totale   : " << int2d(Th)(1.) << "  (attendu 4.2048)" << endl;
+cout << "Aire beton    : " << int2d(Th)(isBeton) << "  (attendu 2.976)" << endl;
+cout << "Aire isolant  : " << int2d(Th)(isIso) << "  (attendu 1.024)" << endl;
+cout << "Aire platre   : " << int2d(Th)(isPlat) << "  (attendu 0.2048)" << endl;
+
+Vh T, v;
+
+solve Piece(T, v) =
+    int2d(Th)(lam*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + int1d(Th, 2, 3, 4)(hext*T*v) - int1d(Th, 2, 3, 4)(hext*Text*v)
+    + int1d(Th, 5)(hint*T*v) - int1d(Th, 5)(hint*Tint*v);
+
+cout << "--- Validation 1D loin des coins ---" << endl;
+cout << "Mur gauche, surface int. (0.32 ; 1.60) : " << T(0.32, 1.6) << "  (attendu 25.4389)" << endl;
+cout << "Toit, surface int. (2.32 ; 3.00)       : " << T(2.32, 3.0) << "  (attendu 25.4389)" << endl;
+cout << "Mur gauche, surface ext. (0 ; 1.60)    : " << T(0.0, 1.6) << "  (attendu 34.8595)" << endl;
+
+cout << "--- Coins interieurs et plancher ---" << endl;
+cout << "Coin haut gauche (0.32 ; 3.00) : " << T(0.32, 3.0) << endl;
+cout << "Coin haut droit  (4.32 ; 3.00) : " << T(4.32, 3.0) << endl;
+cout << "Coin bas gauche  (0.32 ; 0.20) : " << T(0.32, 0.2) << endl;
+cout << "Coin bas droit   (4.32 ; 0.20) : " << T(4.32, 0.2) << endl;
+cout << "Milieu du plancher (2.32 ; 0.20) : " << T(2.32, 0.2) << endl;
+
+real qext = int1d(Th, 2, 3, 4)(hext*(Text - T));
+real qint = int1d(Th, 5)(hint*(T - Tint));
+cout << "--- Bilan de flux (W par metre de profondeur) ---" << endl;
+cout << "Entrant (faces ext.)       : " << qext << endl;
+cout << "Sortant (surfaces int.)    : " << qint << endl;
+cout << "Ecart relatif              : " << abs(qext - qint)/qext << endl;
+cout << "Tmin, Tmax (C)             : " << T[].min << " , " << T[].max << endl;
+
+// Exports pour Python : noeuds et triangles (le trou ne doit pas etre rempli)
+{
+    ofstream f("data/results/cas4_T.txt");
+    f.precision(10);
+    for (int i = 0; i < Th.nv; i++)
+        f << Th(i).x << " " << Th(i).y << " " << T[][i] << endl;
+}
+{
+    ofstream g("data/results/cas4_tri.txt");
+    for (int k = 0; k < Th.nt; k++)
+        g << int(Th[k][0]) << " " << int(Th[k][1]) << " " << int(Th[k][2]) << endl;
+}
