@@ -1,0 +1,89 @@
+// 06_room2d_param.edp : piece 2D, parametres lus dans config/room_params.txt
+// Unites : m, W/(m.K), W/(m2.K), degres C. Resultats par metre de profondeur.
+// Etiquettes : 1 bas (flux nul), 2 droite ext., 3 haut (toit), 4 gauche ext., 5 surfaces int.
+
+real Wt = 4.64;
+real Ht = 3.32;
+
+// --- Lecture des parametres (ordre fixe : voir config/room_params.txt) ---
+real lamBeton, lamIso, lamPlat, Text, TextRoof, Tint, hext, hint;
+string k, tag;
+{
+    ifstream fp("config/room_params.txt");
+    fp >> k >> lamBeton;
+    fp >> k >> lamIso;
+    fp >> k >> lamPlat;
+    fp >> k >> Text;
+    fp >> k >> TextRoof;
+    fp >> k >> Tint;
+    fp >> k >> hext;
+    fp >> k >> hint;
+    fp >> k >> tag;
+}
+cout << "Scenario " << tag << " : lamBeton=" << lamBeton << " lamIso=" << lamIso
+     << " lamPlat=" << lamPlat << " Text=" << Text << " TextRoof=" << TextRoof
+     << " Tint=" << Tint << " hext=" << hext << " hint=" << hint << endl;
+
+// --- Maillage (mailles de 2 cm) : la piece est un trou ---
+mesh Th0 = square(232, 166, [Wt*x, Ht*y]);
+mesh Th = trunc(Th0, (x < 0.32) | (x > 4.32) | (y < 0.20) | (y > 3.00), label=5);
+
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+// --- Materiaux par triangle ---
+V0 inFloor   = (y < 0.20)*1.;
+V0 inRoof    = (y > 3.00)*1.;
+V0 wallBeton = (x < 0.20)*1. + (x > 4.44)*1.;
+V0 wallIso   = (x > 0.20 && x < 0.30)*1. + (x > 4.34 && x < 4.44)*1.;
+V0 roofBeton = (y > 3.12)*1.;
+V0 roofIso   = (y > 3.02 && y < 3.12)*1.;
+
+V0 isBeton = inFloor + (1 - inFloor)*(inRoof*roofBeton + (1 - inRoof)*wallBeton);
+V0 isIso   = (1 - inFloor)*(inRoof*roofIso + (1 - inRoof)*wallIso);
+V0 isPlat  = 1 - isBeton - isIso;
+
+V0 lam = lamBeton*isBeton + lamIso*isIso + lamPlat*isPlat;
+
+// --- Resolution ---
+Vh T, v;
+
+solve Piece(T, v) =
+    int2d(Th)(lam*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + int1d(Th, 2, 3, 4)(hext*T*v)
+    - int1d(Th, 2, 4)(hext*Text*v) - int1d(Th, 3)(hext*TextRoof*v)
+    + int1d(Th, 5)(hint*T*v) - int1d(Th, 5)(hint*Tint*v);
+
+// --- Indicateurs ---
+real qext = int1d(Th, 2, 4)(hext*(Text - T)) + int1d(Th, 3)(hext*(TextRoof - T));
+real qint = int1d(Th, 5)(hint*(T - Tint));
+real Tmean = int1d(Th, 5)(T)/int1d(Th, 5)(1.);
+real Fwall = hint*(T(0.32, 1.6) - Tint);   // flux surface int., milieu du mur gauche
+real Froof = hint*(T(2.32, 3.0) - Tint);   // flux surface int., milieu du toit
+
+cout << "Flux entrant (W/m)           : " << qext << endl;
+cout << "Flux sortant (W/m)           : " << qint << endl;
+cout << "Ecart relatif                : " << abs(qext - qint)/qext << endl;
+cout << "T moyenne surfaces int. (C)  : " << Tmean << endl;
+cout << "Flux milieu du mur (W/m2)    : " << Fwall << endl;
+cout << "Flux milieu du toit (W/m2)   : " << Froof << endl;
+cout << "Tmin, Tmax (C)               : " << T[].min << " , " << T[].max << endl;
+
+// --- Exports (le nom depend du scenario) ---
+{
+    ofstream fs("data/results/room_summary_" + tag + ".txt");
+    fs.precision(10);
+    fs << tag << " " << qext << " " << qint << " " << Tmean << " "
+       << Fwall << " " << Froof << " " << T[].min << " " << T[].max << endl;
+}
+{
+    ofstream f("data/results/room_" + tag + "_T.txt");
+    f.precision(10);
+    for (int i = 0; i < Th.nv; i++)
+        f << Th(i).x << " " << Th(i).y << " " << T[][i] << endl;
+}
+{
+    ofstream g("data/results/room_" + tag + "_tri.txt");
+    for (int j = 0; j < Th.nt; j++)
+        g << int(Th[j][0]) << " " << int(Th[j][1]) << " " << int(Th[j][2]) << endl;
+}

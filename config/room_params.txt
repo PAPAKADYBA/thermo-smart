@@ -1,0 +1,9 @@
+lamBeton 1.4
+lamIso 0.04
+lamPlat 0.5
+Text 35.0
+TextRoof 35.0
+Tint 25.0
+hext 25.0
+hint 8.0
+tag S0
