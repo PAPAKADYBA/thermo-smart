@@ -1,0 +1,17 @@
+// 01_mesh.edp : maillage du cas test 1 (plaque rectangulaire)
+// Unités : mètres. Étiquettes des bords de square() :
+// 1 = bas (y=0), 2 = droite (x=L), 3 = haut (y=H), 4 = gauche (x=0)
+
+real L = 4.0;   // longueur (m)
+real H = 3.0;   // hauteur (m)
+int nx = 40;    // subdivisions selon x
+int ny = 30;    // subdivisions selon y
+
+mesh Th = square(nx, ny, [L*x, H*y]);
+
+cout << "Sommets   : " << Th.nv << endl;
+cout << "Triangles : " << Th.nt << endl;
+cout << "hmax (m)  : " << Th.hmax << endl;
+cout << "Aire (m2) : " << int2d(Th)(1.) << endl;
+
+savemesh(Th, "data/results/mesh_cas1.msh");

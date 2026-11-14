@@ -1,0 +1,42 @@
+// convergence_P1.edp : etude de convergence P1 (solution manufacturee)
+// -div(lambda grad T) = Q sur [0,L]x[0,H], T = 0 sur tout le bord
+// Solution exacte : T = sin(pi x/L) sin(pi y/H)
+
+real L = 4.0;
+real H = 3.0;
+real lambda = 1.0;
+
+real kk = (pi/L)^2 + (pi/H)^2;
+func Tex = sin(pi*x/L)*sin(pi*y/H);
+func dTx = (pi/L)*cos(pi*x/L)*sin(pi*y/H);
+func dTy = (pi/H)*sin(pi*x/L)*cos(pi*y/H);
+func Q   = lambda*kk*Tex;
+
+real eL2prev = 0;
+real eH1prev = 0;
+
+cout << "   h(m)      erreur L2    ordre L2    erreur H1    ordre H1" << endl;
+
+for (int m = 5; m <= 40; m *= 2) {
+    mesh Th = square(4*m, 3*m, [L*x, H*y]);
+    fespace Vh(Th, P1);
+    Vh T, v;
+
+    solve Poisson(T, v) =
+        int2d(Th)(lambda*(dx(T)*dx(v) + dy(T)*dy(v)))
+        - int2d(Th)(Q*v)
+        + on(1, 2, 3, 4, T = 0);
+
+    real eL2 = sqrt(int2d(Th, qforder=5)((T - Tex)^2));
+    real eH1 = sqrt(int2d(Th, qforder=5)((dx(T) - dTx)^2 + (dy(T) - dTy)^2));
+
+    real h = 1.0/m;
+    if (m == 5)
+        cout << h << "    " << eL2 << "    -    " << eH1 << "    -" << endl;
+    else
+        cout << h << "    " << eL2 << "    " << log(eL2prev/eL2)/log(2.)
+             << "    " << eH1 << "    " << log(eH1prev/eH1)/log(2.) << endl;
+
+    eL2prev = eL2;
+    eH1prev = eH1;
+}

@@ -1,0 +1,36 @@
+// 02_stationary.edp : cas test 1, conduction stationnaire en P1
+// Unités : m, W/(m.K), °C. Bords : 1 bas, 2 droite, 3 haut, 4 gauche
+
+real L = 4.0;
+real H = 3.0;
+real lambda = 1.0;      // conductivité (W/(m.K))
+real Tleft  = 30.0;     // x = 0 (°C)
+real Tright = 20.0;     // x = L (°C)
+
+mesh Th = square(40, 30, [L*x, H*y]);
+fespace Vh(Th, P1);
+Vh T, v;
+
+// Formulation variationnelle. Haut et bas : flux nul (condition naturelle).
+problem Chaleur(T, v) =
+    int2d(Th)(lambda*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + on(4, T = Tleft)
+    + on(2, T = Tright);
+
+Chaleur;
+
+// Comparaison avec la solution exacte
+Vh Texact = Tleft - (Tleft - Tright)/L*x;
+Vh ecart = abs(T - Texact);
+
+cout << "Tmin (C)        : " << T[].min << endl;
+cout << "Tmax (C)        : " << T[].max << endl;
+cout << "Erreur L2       : " << sqrt(int2d(Th)((T - Texact)^2)) << endl;
+cout << "Erreur max (C)  : " << ecart[].max << endl;
+
+// Export : x y T (une ligne par sommet)
+{
+    ofstream f("data/results/cas1_T.txt");
+    for (int i = 0; i < Th.nv; i++)
+        f << Th(i).x << " " << Th(i).y << " " << T[][i] << endl;
+}
