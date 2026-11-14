@@ -1,0 +1,67 @@
+// 03_transient.edp : cas test 3, mur composite en regime transitoire
+// Euler implicite : (rho c/dt) T^(n+1) - div(lambda grad T^(n+1)) = (rho c/dt) T^n
+// Unites : m, s, W/(m.K), kg/m3, J/(kg.K), degres C
+// Bords de square() : 1 bas, 2 droite (interieur), 3 haut, 4 gauche (exterieur)
+
+real H  = 1.0;
+real Lw = 0.32;
+real Text = 35.0;
+real Tint = 25.0;
+real hext = 25.0;
+real hint = 8.0;
+
+real dt = 600.0;        // pas de temps (s)
+int nsteps = 576;       // 576 pas de 10 min = 96 h
+
+mesh Th = square(32, 20, [Lw*x, H*y]);
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+// Proprietes par triangle : beton (x<0.20), isolant (0.20<=x<0.30), platre (x>=0.30)
+V0 lam = (x < 0.20)*1.4 + (x >= 0.20 && x < 0.30)*0.04 + (x >= 0.30)*0.5;
+V0 rc  = (x < 0.20)*(2200.*880.) + (x >= 0.20 && x < 0.30)*(30.*1400.) + (x >= 0.30)*(850.*1000.);
+
+Vh T, v, Told;
+T = 25.;
+Told = 25.;
+
+problem Mur(T, v) =
+    int2d(Th)(rc*T*v/dt + lam*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + int1d(Th, 4)(hext*T*v) + int1d(Th, 2)(hint*T*v)
+    - int2d(Th)(rc*Told*v/dt)
+    - int1d(Th, 4)(hext*Text*v) - int1d(Th, 2)(hint*Tint*v);
+
+ofstream f("data/results/cas3_t.txt");
+f.precision(10);
+f << "# t_h  T(x=0)  T(x=0.20)  T(x=0.30)  T(x=0.32)  q_ext  q_int  (y = 0.5 m)" << endl;
+
+// Etat initial (t = 0)
+{
+    real qe0 = int1d(Th, 4)(hext*(Text - T))/H;
+    real qi0 = int1d(Th, 2)(hint*(T - Tint))/H;
+    f << 0 << " " << T(0, 0.5) << " " << T(0.20, 0.5) << " " << T(0.30, 0.5)
+      << " " << T(0.32, 0.5) << " " << qe0 << " " << qi0 << endl;
+}
+
+cout << "  t(h)    T(x=0)    T(x=0.20)  T(x=0.30)  T(x=0.32)" << endl;
+
+for (int n = 1; n <= nsteps; n++) {
+    Mur;
+    Told = T;
+
+    real tt = n*dt/3600.;
+    real qe = int1d(Th, 4)(hext*(Text - T))/H;
+    real qi = int1d(Th, 2)(hint*(T - Tint))/H;
+
+    f << tt << " " << T(0, 0.5) << " " << T(0.20, 0.5) << " " << T(0.30, 0.5)
+      << " " << T(0.32, 0.5) << " " << qe << " " << qi << endl;
+
+    if (n % 36 == 0)   // affichage toutes les 6 h
+        cout << tt << "    " << T(0, 0.5) << "    " << T(0.20, 0.5) << "    "
+             << T(0.30, 0.5) << "    " << T(0.32, 0.5) << endl;
+}
+
+// Comparaison finale avec le cas test 2 (regime stationnaire)
+real ecart = max(max(abs(T(0, 0.5) - 34.8595), abs(T(0.20, 0.5) - 34.3579)),
+                 max(abs(T(0.30, 0.5) - 25.5794), abs(T(0.32, 0.5) - 25.4389)));
+cout << "--- Apres 96 h, ecart max avec le cas test 2 (C) : " << ecart << endl;
