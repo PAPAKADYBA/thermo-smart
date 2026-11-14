@@ -21,7 +21,7 @@ Base : cas test 4 (docs/cas_test_4.md).
 |----------|---------------------|
 | S0       | 3,51                |
 | S1       | environ 23,9        |
-| S2       | environ 1,87        |
+| S2       | environ 2,30        |
 | S3       | environ 10,25 (toit) |
 | S4       | environ 6,88 (toit)  |
 

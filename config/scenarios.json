@@ -1,0 +1,19 @@
+{
+  "base": {
+    "lamBeton": 1.4,
+    "lamIso": 0.04,
+    "lamPlat": 0.5,
+    "Text": 35.0,
+    "TextRoof": 35.0,
+    "Tint": 25.0,
+    "hext": 25.0,
+    "hint": 8.0
+  },
+  "scenarios": [
+    {"tag": "S0", "nom": "Référence",          "changes": {}},
+    {"tag": "S1", "nom": "Sans isolant",       "changes": {"lamIso": 1.4}},
+    {"tag": "S2", "nom": "Isolant performant", "changes": {"lamIso": 0.025}},
+    {"tag": "S3", "nom": "Toit au soleil",     "changes": {"TextRoof": 54.2}},
+    {"tag": "S4", "nom": "Toit clair",         "changes": {"TextRoof": 44.6}}
+  ]
+}
