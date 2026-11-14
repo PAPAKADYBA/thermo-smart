@@ -1,0 +1,47 @@
+// 02b_wall_stationary.edp : cas test 2, mur composite, convection Robin
+// Unites : m, W/(m.K), W/(m2.K), degres C
+// Bords de square() : 1 bas, 2 droite (x=Lw, interieur), 3 haut, 4 gauche (x=0, exterieur)
+
+real H  = 1.0;      // hauteur de la coupe (m)
+real Lw = 0.32;     // epaisseur totale du mur (m)
+real Text = 35.0;   // temperature exterieure (C)
+real Tint = 25.0;   // temperature interieure (C)
+real hext = 25.0;   // convection exterieure (W/(m2.K))
+real hint = 8.0;    // convection interieure (W/(m2.K))
+
+// Mailles de 1 cm en x : les interfaces (0.20 et 0.30) tombent sur des aretes
+mesh Th = square(32, 20, [Lw*x, H*y]);
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+// lambda constant par triangle (evalue au centre du triangle)
+V0 lam = (x < 0.20)*1.4 + (x >= 0.20 && x < 0.30)*0.04 + (x >= 0.30)*0.5;
+
+Vh T, v;
+
+// Robin : -lambda dT/dn = h (T - Tref) sur les faces gauche et droite
+// Haut et bas : flux nul (condition naturelle)
+problem Mur(T, v) =
+    int2d(Th)(lam*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + int1d(Th, 4)(hext*T*v) - int1d(Th, 4)(hext*Text*v)
+    + int1d(Th, 2)(hint*T*v) - int1d(Th, 2)(hint*Tint*v);
+
+Mur;
+
+cout << "--- Temperatures a y = 0.5 m (attendu entre parentheses) ---" << endl;
+cout << "x = 0.00 : " << T(0.00, 0.5) << "  (34.8595)" << endl;
+cout << "x = 0.20 : " << T(0.20, 0.5) << "  (34.3579)" << endl;
+cout << "x = 0.30 : " << T(0.30, 0.5) << "  (25.5794)" << endl;
+cout << "x = 0.32 : " << T(0.32, 0.5) << "  (25.4389)" << endl;
+
+real qext = int1d(Th, 4)(hext*(Text - T))/H;
+real qint = int1d(Th, 2)(hint*(T - Tint))/H;
+cout << "--- Bilan de flux (W/m2), attendu 3.5114 ---" << endl;
+cout << "Flux entrant (face ext.)  : " << qext << endl;
+cout << "Flux sortant (face int.)  : " << qint << endl;
+
+{
+    ofstream f("data/results/cas2_T.txt");
+    for (int i = 0; i < Th.nv; i++)
+        f << Th(i).x << " " << Th(i).y << " " << T[][i] << endl;
+}
