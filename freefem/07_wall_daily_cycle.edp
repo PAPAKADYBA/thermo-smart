@@ -1,0 +1,83 @@
+// 07_wall_daily_cycle.edp : cas test 5, mur composite avec cycle jour/nuit
+// Euler implicite, T_ext(t) = Tmoy + Tamp cos(2 pi (t - tmax)/24), t en heures
+// Etiquettes de square() : 2 droite (interieur), 4 gauche (exterieur)
+
+verbosity = 0;   // evite d'afficher une ligne par resolution
+
+real H  = 1.0;
+real Lw = 0.32;
+real Tint = 25.0;
+real hext = 25.0;
+real hint = 8.0;
+
+real Tmoy = 30.0;   // temperature exterieure moyenne (C)
+real Tamp = 5.0;    // amplitude (C)
+real tmaxh = 15.0;  // heure du maximum
+
+real dt = 600.0;
+int nsteps = 720;       // 5 jours
+int perSteps = 144;     // pas par jour
+
+mesh Th = square(32, 20, [Lw*x, H*y]);
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+V0 lam = (x < 0.20)*1.4 + (x >= 0.20 && x < 0.30)*0.04 + (x >= 0.30)*0.5;
+V0 rc  = (x < 0.20)*(2200.*880.) + (x >= 0.20 && x < 0.30)*(30.*1400.) + (x >= 0.30)*(850.*1000.);
+
+Vh T, v, Told;
+T = 25.;
+Told = 25.;
+
+real Textt = Tmoy + Tamp*cos(2.*pi*(0. - tmaxh)/24.);
+
+problem Mur(T, v) =
+    int2d(Th)(rc*T*v/dt + lam*(dx(T)*dx(v) + dy(T)*dy(v)))
+    + int1d(Th, 4)(hext*T*v) + int1d(Th, 2)(hint*T*v)
+    - int2d(Th)(rc*Told*v/dt)
+    - int1d(Th, 4)(hext*Textt*v) - int1d(Th, 2)(hint*Tint*v);
+
+real[int] P0a(nsteps+1), P1a(nsteps+1), P2a(nsteps+1), P3a(nsteps+1);
+real[int] qeA(nsteps+1), qiA(nsteps+1);
+
+ofstream f("data/results/cas5_t.txt");
+f.precision(10);
+f << "# t_h  T_ext  T(x=0)  T(x=0.20)  T(x=0.30)  T(x=0.32)  q_ext  q_int  (y = 0.5 m)" << endl;
+
+// Etat initial
+P0a(0) = T(0, 0.5);  P1a(0) = T(0.20, 0.5);  P2a(0) = T(0.30, 0.5);  P3a(0) = T(0.32, 0.5);
+qeA(0) = int1d(Th, 4)(hext*(Textt - T))/H;
+qiA(0) = int1d(Th, 2)(hint*(T - Tint))/H;
+f << 0 << " " << Textt << " " << P0a(0) << " " << P1a(0) << " " << P2a(0) << " " << P3a(0)
+  << " " << qeA(0) << " " << qiA(0) << endl;
+
+for (int n = 1; n <= nsteps; n++) {
+    real tt = n*dt/3600.;
+    Textt = Tmoy + Tamp*cos(2.*pi*(tt - tmaxh)/24.);
+    Mur;
+    Told = T;
+
+    P0a(n) = T(0, 0.5);  P1a(n) = T(0.20, 0.5);  P2a(n) = T(0.30, 0.5);  P3a(n) = T(0.32, 0.5);
+    qeA(n) = int1d(Th, 4)(hext*(Textt - T))/H;
+    qiA(n) = int1d(Th, 2)(hint*(T - Tint))/H;
+
+    f << tt << " " << Textt << " " << P0a(n) << " " << P1a(n) << " " << P2a(n) << " " << P3a(n)
+      << " " << qeA(n) << " " << qiA(n) << endl;
+}
+
+// --- Verifications sur le dernier jour ---
+real dmax = 0;
+real sumqe = 0;
+real sumqi = 0;
+for (int n = nsteps - perSteps + 1; n <= nsteps; n++) {
+    dmax = max(dmax, abs(P0a(n) - P0a(n - perSteps)));
+    dmax = max(dmax, abs(P1a(n) - P1a(n - perSteps)));
+    dmax = max(dmax, abs(P2a(n) - P2a(n - perSteps)));
+    dmax = max(dmax, abs(P3a(n) - P3a(n - perSteps)));
+    sumqe += qeA(n);
+    sumqi += qiA(n);
+}
+cout << "--- Verifications sur le 5e jour ---" << endl;
+cout << "Periodicite : ecart max entre le jour 5 et le jour 4 (C) : " << dmax << "  (attendu < 0.01)" << endl;
+cout << "Flux moyen entrant (W/m2) : " << sumqe/perSteps << "  (attendu 1.7557)" << endl;
+cout << "Flux moyen sortant (W/m2) : " << sumqi/perSteps << "  (attendu 1.7557)" << endl;
