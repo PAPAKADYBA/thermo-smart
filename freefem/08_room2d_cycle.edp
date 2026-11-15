@@ -1,0 +1,163 @@
+// 08_room2d_cycle.edp : piece 2D, cycle jour/nuit, air interieur libre
+// Parametres lus dans config/cycle_params.txt. Resultats par metre de profondeur.
+// Etiquettes : 1 bas (flux nul), 2 droite ext., 3 toit, 4 gauche ext., 5 surfaces interieures
+
+verbosity = 0;
+
+real Wt = 4.64;
+real Ht = 3.32;
+real hext = 25.0;
+real hint = 8.0;
+real Tmoy = 30.0;
+real Tamp = 5.0;
+real tmaxh = 15.0;
+real Imax = 800.0;
+real Vroom = 11.2;            // volume de la piece par metre de profondeur (m3/m)
+real rhoCair = 1.2*1005.;     // rho c de l'air (J/(m3.K))
+real T0 = 31.0;               // temperature initiale (C)
+
+// --- Lecture des parametres ---
+real lamBeton, lamIso, lamPlat, rcIso, absorp, achDay, achNight;
+string k, tag;
+{
+    ifstream fp("config/cycle_params.txt");
+    fp >> k >> lamBeton;
+    fp >> k >> lamIso;
+    fp >> k >> lamPlat;
+    fp >> k >> rcIso;
+    fp >> k >> absorp;
+    fp >> k >> achDay;
+    fp >> k >> achNight;
+    fp >> k >> tag;
+}
+cout << "Scenario " << tag << " : lamIso=" << lamIso << " rcIso=" << rcIso
+     << " absorp=" << absorp << " achDay=" << achDay << " achNight=" << achNight << endl;
+
+// --- Maillage et materiaux (comme 06_room2d_param.edp) ---
+mesh Th0 = square(232, 166, [Wt*x, Ht*y]);
+mesh Th = trunc(Th0, (x < 0.32) | (x > 4.32) | (y < 0.20) | (y > 3.00), label=5);
+
+fespace Vh(Th, P1);
+fespace V0(Th, P0);
+
+V0 inFloor   = (y < 0.20)*1.;
+V0 inRoof    = (y > 3.00)*1.;
+V0 wallBeton = (x < 0.20)*1. + (x > 4.44)*1.;
+V0 wallIso   = (x > 0.20 && x < 0.30)*1. + (x > 4.34 && x < 4.44)*1.;
+V0 roofBeton = (y > 3.12)*1.;
+V0 roofIso   = (y > 3.02 && y < 3.12)*1.;
+
+V0 isBeton = inFloor + (1 - inFloor)*(inRoof*roofBeton + (1 - inRoof)*wallBeton);
+V0 isIso   = (1 - inFloor)*(inRoof*roofIso + (1 - inRoof)*wallIso);
+V0 isPlat  = 1 - isBeton - isIso;
+
+V0 lam = lamBeton*isBeton + lamIso*isIso + lamPlat*isPlat;
+V0 rc  = (2200.*880.)*isBeton + rcIso*isIso + (850.*1000.)*isPlat;
+
+real Aint = int1d(Th, 5)(1.);   // perimetre interieur (m)
+
+// --- Temps ---
+real dt = 600.0;
+int nsteps = 3600;       // 25 jours
+int per = 144;          // pas par jour
+
+Vh T, v, Told;
+T = T0;
+Told = T0;
+real Textt, Tsolt, Tairt;
+
+// Matrice assemblee et factorisee une seule fois
+varf aVar(u, w) = int2d(Th)(rc*u*w/dt + lam*(dx(u)*dx(w) + dy(u)*dy(w)))
+    + int1d(Th, 2, 3, 4)(hext*u*w) + int1d(Th, 5)(hint*u*w);
+matrix A = aVar(Vh, Vh, solver=UMFPACK);
+
+// Second membre : change a chaque pas
+varf bVar(u, w) = int2d(Th)(rc*Told*w/dt)
+    + int1d(Th, 2, 4)(hext*Textt*w) + int1d(Th, 3)(hext*Tsolt*w)
+    + int1d(Th, 5)(hint*Tairt*w);
+
+real[int] TairA(nsteps+1), TsurfA(nsteps+1), QextA(nsteps+1), QintA(nsteps+1), ResA(nsteps+1);
+
+ofstream f("data/results/cycle_" + tag + "_t.txt");
+f.precision(10);
+f << "# t_h  T_ext  T_air_soleil_toit  T_air  T_surf_moy  Q_ext  Q_int" << endl;
+
+real Text0 = Tmoy + Tamp*cos(2.*pi*(0. - tmaxh)/24.);
+TairA(0) = T0;
+TsurfA(0) = T0;
+f << 0 << " " << Text0 << " " << Text0 << " " << T0 << " " << T0 << " " << 0 << " " << 0 << endl;
+
+for (int n = 1; n <= nsteps; n++) {
+    real tt = n*dt/3600.;
+    real hod = tt - 24.*floor(tt/24.);
+    Textt = Tmoy + Tamp*cos(2.*pi*(tt - tmaxh)/24.);
+    real Isun = 0.;
+    if (hod > 6. && hod < 18.) Isun = Imax*sin(pi*(hod - 6.)/12.);
+    Tsolt = Textt + absorp*Isun/hext;
+    real ach = achDay;
+    if (hod >= 20. || hod < 6.) ach = achNight;
+    real Cv = rhoCair*ach*Vroom/3600.;
+
+    // air quasi-statique : deux iterations air <-> surfaces
+    real Tsurf = int1d(Th, 5)(T)/Aint;
+    for (int it = 0; it < 2; it++) {
+        Tairt = (hint*Aint*Tsurf + Cv*Textt)/(hint*Aint + Cv);
+        real[int] b = bVar(0, Vh);
+        T[] = A^-1*b;
+        Tsurf = int1d(Th, 5)(T)/Aint;
+    }
+    real Tairfin = (hint*Aint*Tsurf + Cv*Textt)/(hint*Aint + Cv);
+
+    real Qext = int1d(Th, 2, 4)(hext*(Textt - T)) + int1d(Th, 3)(hext*(Tsolt - T));
+    real Qint = int1d(Th, 5)(hint*(T - Tairt));
+    real Estor = int2d(Th)(rc*(T - Told))/dt;
+
+    TairA(n) = Tairfin;
+    TsurfA(n) = Tsurf;
+    QextA(n) = Qext;
+    QintA(n) = Qint;
+    ResA(n) = abs(Qext - Qint - Estor);   // bilan discret : doit etre ~ 0
+
+    f << tt << " " << Textt << " " << Tsolt << " " << Tairfin << " " << Tsurf
+      << " " << Qext << " " << Qint << endl;
+
+    Told = T;
+}
+
+// --- Indicateurs et verifications sur le dernier jour ---
+real dpmax = 0, resmax = 0, sQe = 0, sQi = 0, sT = 0;
+real DH28 = 0, DH30 = 0, Tmaxd = -1.e9, Tmind = 1.e9;
+int nmax = 0;
+for (int n = nsteps - per + 1; n <= nsteps; n++) {
+    dpmax = max(dpmax, abs(TairA(n) - TairA(n - per)));
+    resmax = max(resmax, ResA(n));
+    sQe += QextA(n);
+    sQi += QintA(n);
+    sT += TairA(n);
+    DH28 += max(0., TairA(n) - 28.)*dt/3600.;
+    DH30 += max(0., TairA(n) - 30.)*dt/3600.;
+    if (TairA(n) > Tmaxd) { Tmaxd = TairA(n); nmax = n; }
+    if (TairA(n) < Tmind) Tmind = TairA(n);
+}
+real tmx = nmax*dt/3600.;
+real hmax = tmx - 24.*floor(tmx/24.);
+
+cout << "--- Scenario " << tag << " : dernier jour ---" << endl;
+cout << "T air moyenne (C)       : " << sT/per << endl;
+cout << "T air max / min (C)     : " << Tmaxd << " / " << Tmind << "  (amplitude " << (Tmaxd - Tmind)/2 << ")" << endl;
+cout << "Heure du maximum (h)    : " << hmax << endl;
+cout << "Degres-heures > 28 C    : " << DH28 << endl;
+cout << "Degres-heures > 30 C    : " << DH30 << endl;
+cout << "--- Verifications ---" << endl;
+cout << "Periodicite T air (dernier jour - veille), max (C) : " << dpmax << "  (attendu < 0.05)" << endl;
+cout << "Bilan discret pas a pas, residu max (W/m)    : " << resmax << "  (attendu ~ 1e-8 ou moins)" << endl;
+cout << "Flux moyen entrant ext. (W/m)  : " << sQe/per << endl;
+cout << "Flux moyen sortant vers l'air  : " << sQi/per << endl;
+cout << "Ecart relatif des flux moyens  : " << abs(sQe - sQi)/abs(sQe) << "  (attendu < 0.005)" << endl;
+
+{
+    ofstream fs("data/results/cycle_summary_" + tag + ".txt");
+    fs.precision(10);
+    fs << tag << " " << sT/per << " " << Tmaxd << " " << Tmind << " " << hmax << " "
+       << DH28 << " " << DH30 << " " << sQe/per << " " << sQi/per << " " << dpmax << " " << resmax << endl;
+}

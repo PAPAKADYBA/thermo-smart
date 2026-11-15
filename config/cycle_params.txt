@@ -1,0 +1,8 @@
+lamBeton 1.4
+lamIso 0.04
+lamPlat 0.5
+rcIso 42000
+absorp 0.6
+achDay 1.0
+achNight 1.0
+tag C0

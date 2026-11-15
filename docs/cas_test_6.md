@@ -15,7 +15,7 @@ T_air = (h_int A_int T_surf + C_v T_ext) / (h_int A_int + C_v)
   I(t) = 800 sin(pi (h - 6)/12) W/m2 entre 6 h et 18 h, nul sinon ; alpha = 0,6
 
 ## Simulation
-Pas de 10 min, 6 jours (864 pas), départ à 28 °C partout. Analyse du jour 6.
+Pas de 10 min, 25 jours (3600 pas), départ à 31 °C partout. Analyse du dernier jour (la masse intérieure a une constante de temps de plusieurs jours).
 
 ## Scénarios
 
@@ -27,12 +27,12 @@ Pas de 10 min, 6 jours (864 pas), départ à 28 °C partout. Analyse du jour 6.
 | C3 | Toit clair          | alpha = 0,3                                                 |
 | C4 | Ventilation nocturne| 5 renouvellements d'air/h de 20 h à 6 h, 1 sinon            |
 
-## Indicateurs (jour 6)
+## Indicateurs (dernier jour)
 Température de l'air : moyenne, maximale, amplitude, heure du maximum ;
 degrés-heures au-dessus de 28 °C (et de 30 °C) : somme de max(0, T_air - seuil) dt.
 
 ## Vérifications
-1. Périodicité : le jour 6 répète le jour 5 (écart sur T_air de l'ordre de 0,01 à 0,05 °C).
+1. Périodicité : le dernier jour répète la veille (écart sur T_air de l'ordre de 0,01 à 0,05 °C).
 2. Bilan énergétique : flux entrant par l'extérieur = flux sortant vers l'air, en moyenne sur un jour ;
    le bilan discret pas à pas est vérifié à la précision machine.
 3. Cohérence physique : sans isolant, l'air suit l'extérieur de plus près ;
