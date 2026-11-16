@@ -12,6 +12,7 @@ from matplotlib.tri import Triangulation
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from run_scenarios import (ROOT, write_params, run_freefem, read_summary,
                            interior_surface_stats, expected_1d)
+import ui_confort
 
 BASE = dict(lamBeton=1.4, lamIso=0.04, lamPlat=0.5, Text=35.0, TextRoof=35.0,
             Tint=25.0, hext=25.0, hint=8.0)
@@ -89,7 +90,7 @@ with tab1:
             delta = None
             if ref:
                 delta = f"{100 * (s['qext'] - ref) / ref:+.0f} % par rapport à la référence"
-            c1.metric("Flux entrant total (W par m de profondeur)", f"{s['qext']:.1f}",
+            c1.metric("Flux entrant (W/m)", f"{s['qext']:.1f}",
                       delta=delta, delta_color="inverse")
             c2.metric("T moyenne des surfaces intérieures", f"{s['Tmean']:.2f} °C")
             c3.metric("T maximale des surfaces intérieures", f"{res['tmax_i']:.2f} °C")
@@ -121,7 +122,7 @@ with tab1:
                            "L'écart restant aux coins est l'effet des ponts thermiques.")
 
 with tab2:
-    st.info("Cet onglet sera ajouté à l'étape suivante : le confort sur 24 h pour les scénarios C0 à C4.")
+    ui_confort.render()
 
 with tab3:
     st.markdown("""
