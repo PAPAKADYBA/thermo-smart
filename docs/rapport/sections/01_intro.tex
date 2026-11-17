@@ -1,0 +1,32 @@
+\section{Introduction et objectifs}
+
+\subsection{Contexte}
+Dans un climat chaud comme celui de Dakar, la chaleur reçue par l'enveloppe d'un bâtiment (air extérieur
+chaud, soleil sur le toit) se traduit par une surchauffe intérieure et par des besoins de refroidissement.
+Choisir l'isolation, la couleur du toit ou la stratégie de ventilation demande de comparer des solutions
+de façon quantitative, avec un modèle dont on sait qu'il est juste.
+
+\subsection{Objectif général}
+Développer un outil numérique de simulation thermique fondé sur la modélisation mathématique et la
+méthode des éléments finis, puis l'utiliser pour comparer des configurations de bâtiment.
+
+\subsection{Objectifs spécifiques}
+\begin{itemize}
+  \item définir une géométrie 2D simplifiée et les matériaux ;
+  \item établir les équations de transfert thermique et les conditions aux limites ;
+  \item construire un maillage adapté et résoudre le problème par éléments finis P1 avec FreeFem++ ;
+  \item exporter les résultats vers Python pour les traiter et les visualiser ;
+  \item comparer plusieurs scénarios et produire un rapport synthétique ;
+  \item développer une interface permettant de modifier les paramètres.
+\end{itemize}
+
+\subsection{Démarche}
+Le projet avance par petites étapes, chacune validée avant la suivante : un modèle physique simple est
+d'abord vérifié contre des solutions connues, puis enrichi (plusieurs matériaux, temps, pièce en 2D,
+air intérieur, soleil et ventilation). Une image colorée ne prouve pas que le calcul est juste : chaque
+cas est accompagné de vérifications quantitatives (solution exacte, étude de convergence, bilans de flux).
+
+\subsection{Limites annoncées}
+Le modèle est 2D et simplifié. Les résultats dépendent de la qualité des données et des hypothèses.
+Ils constituent une aide à l'étude, non une certification réglementaire. Les limites sont détaillées
+à la section~\ref{sec:limites}.

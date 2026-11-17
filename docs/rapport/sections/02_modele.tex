@@ -1,0 +1,107 @@
+\section{Modèle physique et mathématique}
+
+\subsection{Équation de la chaleur}
+Soit $\Omega\subset\mathbb{R}^2$ la coupe étudiée (un mur, ou une pièce avec son enveloppe). Chaque matériau
+est caractérisé par sa conductivité thermique $\lambda$ (W/(m\,K)), sa masse volumique $\rho$ (kg/m$^3$)
+et sa capacité thermique massique $c$ (J/(kg\,K)). Sans source interne, la température $T(\mathbf{x},t)$
+vérifie
+\begin{equation}\label{eq:chaleur}
+\rho c\,\frac{\partial T}{\partial t}-\nabla\!\cdot(\lambda\nabla T)=0
+\quad\text{dans }\Omega\times(0,t_f),
+\end{equation}
+et, en régime stationnaire,
+\begin{equation}\label{eq:stationnaire}
+-\nabla\!\cdot(\lambda\nabla T)=0\quad\text{dans }\Omega.
+\end{equation}
+Les coefficients $\lambda$ et $\rho c$ sont constants par morceaux (un matériau par zone). La continuité de
+la température et du flux normal aux interfaces est satisfaite naturellement par la formulation
+variationnelle ci-dessous. Tous les résultats sont donnés par mètre de profondeur.
+
+\subsection{Conditions aux limites}
+Sur les faces en contact avec l'air (faces extérieures $\Gamma_{\mathrm{ext}}$ et surfaces intérieures
+$\Gamma_{\mathrm{int}}$), on impose un échange convectif de type Robin :
+\begin{equation}\label{eq:robin}
+-\lambda\,\frac{\partial T}{\partial n}=h\,(T-T_{\mathrm{ref}}),
+\end{equation}
+avec $h=h_{\mathrm{ext}}$ et $T_{\mathrm{ref}}=T_{\mathrm{ext}}$ (ou la température équivalente du toit)
+sur $\Gamma_{\mathrm{ext}}$, et $h=h_{\mathrm{int}}$ et $T_{\mathrm{ref}}=T_{\mathrm{int}}$ (ou $T_{\mathrm{air}}$)
+sur $\Gamma_{\mathrm{int}}$. Sur le reste de la frontière (bas du plancher, bords haut et bas des coupes de mur),
+le flux est nul : $-\lambda\,\partial T/\partial n=0$. Les valeurs retenues sont
+$h_{\mathrm{ext}}=25$ et $h_{\mathrm{int}}=8$ W/(m$^2$\,K).
+
+\subsection{Formulation variationnelle et éléments finis P1}
+On multiplie par une fonction test $v\in H^1(\Omega)$ et on intègre par parties ; la condition de Robin
+intervient dans la forme bilinéaire. En régime stationnaire, on cherche $T\in H^1(\Omega)$ tel que, pour tout $v$,
+\begin{equation}\label{eq:variationnelle}
+\int_\Omega \lambda\,\nabla T\cdot\nabla v\,d\Omega+\sum_k\int_{\Gamma_k} h_k\,T\,v\,d\Gamma
+=\sum_k\int_{\Gamma_k} h_k\,T_{\mathrm{ref},k}\,v\,d\Gamma .
+\end{equation}
+La température est approchée par une fonction affine sur chaque triangle, $T_h=\sum_j T_j\varphi_j$, ce qui
+conduit au système linéaire $(K+R)\,\mathbf{T}=\mathbf{F}$, où $K$ est la matrice de rigidité (pondérée par
+$\lambda$), $R$ la matrice de convection sur les frontières de Robin et $\mathbf{F}$ le second membre de convection.
+
+Pour le régime transitoire, on emploie le schéma d'Euler implicite, inconditionnellement stable et d'ordre un
+en temps :
+\begin{equation}\label{eq:euler}
+\left(\frac{M}{\Delta t}+K+R\right)\mathbf{T}^{n+1}=\frac{M}{\Delta t}\,\mathbf{T}^{n}+\mathbf{F}^{n+1},
+\end{equation}
+où $M$ est la matrice de masse pondérée par $\rho c$. Les matrices ne dépendant pas du temps, la matrice du
+membre de gauche est assemblée et factorisée une seule fois dans les simulations de cycle jour/nuit ; seul
+le second membre est recalculé à chaque pas. Le pas de temps est $\Delta t=600$~s.
+
+\subsection{Matériaux}
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Matériau & $\lambda$ (W/(m\,K)) & $\rho$ (kg/m$^3$) & $c$ (J/(kg\,K)) \\
+\midrule
+Béton   & 1,4  & 2200 & 880  \\
+Isolant & 0,04 & 30   & 1400 \\
+Plâtre  & 0,5  & 850  & 1000 \\
+\bottomrule
+\end{tabular}
+\caption{Propriétés thermiques retenues (valeurs courantes de la littérature).}
+\label{tab:materiaux}
+\end{table}
+Les parois sont composées, de l'extérieur vers l'intérieur, de béton (0,20~m), d'isolant (0,10~m) et de
+plâtre (0,02~m).
+
+\subsection{Conditions extérieures : journée type et soleil}
+La température de l'air extérieur suit une journée type, avec $t$ en heures :
+\begin{equation}\label{eq:text}
+T_{\mathrm{ext}}(t)=T_{\mathrm{moy}}+T_{\mathrm{amp}}\cos\!\left(\frac{2\pi\,(t-t_{\max})}{24}\right),
+\end{equation}
+avec $T_{\mathrm{moy}}=30$~\textdegree C, $T_{\mathrm{amp}}=5$~\textdegree C et $t_{\max}=15$~h
+(minimum de 25~\textdegree C à 3~h, maximum de 35~\textdegree C à 15~h).
+Le rayonnement solaire absorbé par le toit est représenté par une température équivalente (température
+« air-soleil »)
+\begin{equation}\label{eq:airsoleil}
+T_{\mathrm{toit}}(t)=T_{\mathrm{ext}}(t)+\frac{\alpha\,I(t)}{h_{\mathrm{ext}}},\qquad
+I(t)=\begin{cases}I_{\max}\sin\!\left(\dfrac{\pi\,(h-6)}{12}\right)&6<h<18,\\[0.5em]0&\text{sinon,}\end{cases}
+\end{equation}
+où $h$ est l'heure de la journée, $\alpha$ l'absorption solaire du toit ($0{,}6$ par défaut,
+$0{,}3$ pour un toit clair) et $I_{\max}=800$~W/m$^2$.
+
+\subsection{Air intérieur et ventilation}
+Dans les simulations de confort, la température intérieure n'est plus imposée : l'air de la pièce évolue
+librement. On le représente par un bilan de chaleur sans inertie propre : la chaleur reçue des surfaces
+intérieures est évacuée par la ventilation,
+\begin{equation}\label{eq:air}
+h_{\mathrm{int}}A_{\mathrm{int}}\,(\bar T_s-T_{\mathrm{air}})=C_v\,(T_{\mathrm{air}}-T_{\mathrm{ext}}),
+\quad\text{soit}\quad
+T_{\mathrm{air}}=\frac{h_{\mathrm{int}}A_{\mathrm{int}}\,\bar T_s+C_v\,T_{\mathrm{ext}}}{h_{\mathrm{int}}A_{\mathrm{int}}+C_v},
+\end{equation}
+où $\bar T_s$ est la température moyenne des surfaces intérieures, $A_{\mathrm{int}}=13{,}6$~m leur périmètre
+(par mètre de profondeur) et $C_v=\rho_a c_a\,nV/3600$ la conductance de ventilation, avec
+$\rho_a c_a=1{,}2\times 1005$~J/(m$^3$\,K), $n$ le nombre de renouvellements d'air par heure et
+$V=11{,}2$~m$^3$ le volume de la pièce par mètre de profondeur. Le couplage air--surfaces est résolu par
+deux itérations à chaque pas de temps.
+
+\subsection{Indicateur de surchauffe}
+Le confort est évalué par les degrés-heures au-dessus d'un seuil $s$ (28 ou 30~\textdegree C), calculés
+sur la dernière journée simulée :
+\begin{equation}\label{eq:dh}
+DH_s=\int_{\text{jour}}\max\bigl(0,\,T_{\mathrm{air}}(t)-s\bigr)\,dt ,
+\end{equation}
+indicateur de la forme proposée dans le guide de réalisation du projet.

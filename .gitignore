@@ -4,3 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 data/results/*
 !data/results/.gitkeep
+docs/rapport/*.aux
+docs/rapport/*.log
+docs/rapport/*.toc
+docs/rapport/*.out
+docs/rapport/*.fls
+docs/rapport/*.fdb_latexmk
+docs/rapport/*.synctex.gz

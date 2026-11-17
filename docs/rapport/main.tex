@@ -1,0 +1,36 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\graphicspath{{figures/}}
+
+% Une section absente s'affiche comme "a venir" au lieu de bloquer la compilation
+\newcommand{\inputsafe}[1]{\IfFileExists{#1.tex}{\input{#1}}{\par\textit{[Section à venir : \detokenize{#1}]}\par}}
+
+\title{\textbf{THERMO-SMART}\\[0.6em]
+Plateforme de simulation thermique et d'optimisation énergétique des bâtiments\\[0.6em]
+\large Rapport scientifique}
+\author{Papa Kady BA}
+\date{Novembre 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\inputsafe{sections/01_intro}
+\inputsafe{sections/02_modele}
+\inputsafe{sections/03_implementation}
+\inputsafe{sections/04_validation}
+\inputsafe{sections/05_resultats}
+\inputsafe{sections/06_interface}
+\inputsafe{sections/07_limites}
+\inputsafe{sections/08_conclusion}
+
+\end{document}
