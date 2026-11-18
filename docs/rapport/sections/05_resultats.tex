@@ -1,0 +1,190 @@
+\section{Résultats}\label{sec:resultats}
+
+\subsection{Comportement du mur}
+Le profil de température à travers le mur de trois couches (figure~\ref{fig:mur}) montre que l'isolant
+concentre la chute de température : entre l'interface béton/isolant et l'interface isolant/plâtre, la
+température passe de 34,36 à 25,58~\textdegree C, soit environ 8,8~\textdegree C sur les 10~\textdegree C
+d'écart entre l'extérieur et l'intérieur.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{cas2_profil}
+	\caption{Mur de trois couches en régime stationnaire : profil de température à $y=0{,}5$~m (courbe : calcul
+		P1 ; points : solution exacte) et carte de température.}
+	\label{fig:mur}
+\end{figure}
+
+En régime transitoire (figure~\ref{fig:transitoire}), après un échelon de la température extérieure à
+35~\textdegree C, la face extérieure atteint 33,7~\textdegree C au bout de 12~h, alors que la face intérieure
+ne passe que de 25 à 25,26~\textdegree C : le béton absorbe la chaleur et l'isolant protège l'intérieur. Après
+96~h, le régime stationnaire est atteint.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{cas3_temps}
+	\caption{Régime transitoire du mur après un échelon de température extérieure : température en quatre
+		points (les lignes pointillées sont les valeurs du régime stationnaire) et flux thermique.}
+	\label{fig:transitoire}
+\end{figure}
+
+Sur une journée type (figure~\ref{fig:cyclemur}), le mur amortit 98,5~\% de l'oscillation extérieure
+(amplitude de 0,075~\textdegree C à la face intérieure contre 5~\textdegree C dehors) et retarde son maximum
+de 7,7~h : la chaleur de l'après-midi atteint la face intérieure vers 22~h~40.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{cas5_journee}
+	\caption{Cycle jour/nuit sur le mur (régime périodique) : température en quatre points sur 24~h et flux
+		thermique entrant et sortant.}
+	\label{fig:cyclemur}
+\end{figure}
+
+\subsection{Pièce en 2D : ponts thermiques}
+La carte de température de la pièce de référence (figure~\ref{fig:piece}) fait apparaître l'effet des
+jonctions. Loin des coins, la surface intérieure est à 25,44~\textdegree C, comme dans le calcul 1D du mur ;
+aux coins elle est plus chaude : 26,64~\textdegree C aux coins supérieurs (jonction mur/toit) et
+28,06~\textdegree C aux coins inférieurs (jonction mur/plancher). Le milieu du plancher reste à
+25,0~\textdegree C.
+
+Le flux total entrant vaut 46,6~W/m, contre 33,7~W/m prédits par un calcul 1D sur les 9,6~m de murs et de toit
+intérieurs ($3{,}51~\mathrm{W/m^2}\times 9{,}6~\mathrm{m}$). Les jonctions et le plancher ajoutent donc environ
+12,9~W/m, soit 28~\% du flux total. Ce supplément s'explique vraisemblablement par la continuité du béton
+entre la dalle, non isolée, et la couche extérieure des murs.
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{cas4_carte}
+	\caption{Pièce de référence en régime stationnaire : carte de température et zooms sur les coins du côté
+		gauche (jonction mur/toit en haut, jonction mur/plancher en bas).}
+	\label{fig:piece}
+\end{figure}
+
+\subsection{Scénarios en régime stationnaire}
+Cinq scénarios sont comparés sur la pièce, avec un intérieur maintenu à 25~\textdegree C : la référence (S0),
+la suppression de l'isolant (S1, couche remplacée par du béton), un isolant plus performant
+($\lambda=0{,}025$~W/(m\,K), S2), un toit au soleil (température équivalente de 54,2~\textdegree C, S3) et un
+toit clair (44,6~\textdegree C, S4). Le tableau~\ref{tab:scen} donne les résultats.
+
+\begin{table}[ht]
+	\centering\small
+	\begin{tabular}{lcccc}
+		\toprule
+		Scénario & flux total (W/m) & écart & T moy. surfaces (\textdegree C) & T max surfaces (\textdegree C) \\
+		\midrule
+		S0 référence & 46,6 & -- & 25,43 & 28,06 \\
+		S1 sans isolant & 243,6 & $+423$~\% & 27,24 & 29,50 \\
+		S2 isolant performant & 35,1 & $-25$~\% & 25,32 & 28,07 \\
+		S3 toit au soleil & 74,0 & $+59$~\% & 25,68 & 28,06 \\
+		S4 toit clair & 60,3 & $+29$~\% & 25,55 & 28,06 \\
+		\bottomrule
+	\end{tabular}
+	\caption{Scénarios en régime stationnaire : flux entrant total par mètre de profondeur et températures des
+		surfaces intérieures.}
+	\label{tab:scen}
+\end{table}
+
+Dans chaque scénario, le flux calculé au milieu d'un mur et au milieu du toit est égal à la valeur 1D
+(3,51 ; 23,85 ; 2,30 ; 10,25 et 6,88~W/m$^2$ selon le cas). En retirant du flux total la part des murs
+et du toit, on obtient la contribution des jonctions et du plancher (tableau~\ref{tab:decomp},
+figure~\ref{fig:flux}).
+
+\begin{table}[ht]
+	\centering\small
+	\begin{tabular}{lcccc}
+		\toprule
+		Scénario & murs (W/m) & toit (W/m) & jonctions et plancher (W/m) & total (W/m) \\
+		\midrule
+		S0 & 19,66 & 14,05 & 12,89 & 46,60 \\
+		S1 & 133,57 & 95,40 & 14,60 & 243,56 \\
+		S2 & 12,88 & 9,20 & 13,02 & 35,10 \\
+		S3 & 19,66 & 41,01 & 13,36 & 74,04 \\
+		S4 & 19,66 & 27,53 & 13,13 & 60,32 \\
+		\bottomrule
+	\end{tabular}
+	\caption{Décomposition du flux total entrant (murs : $2\times2{,}8$~m, toit : $4{,}0$~m).}
+	\label{tab:decomp}
+\end{table}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.9\textwidth]{scenarios_flux}
+	\caption{Flux entrant total par scénario, décomposé en murs, toit, jonctions et plancher.}
+	\label{fig:flux}
+\end{figure}
+
+\begin{itemize}
+	\item Supprimer l'isolant multiplie par 6,8 le flux à travers un mur (de 3,51 à 23,85~W/m$^2$).
+	\item Un isolant plus performant réduit le flux à travers un mur de 35~\%, mais le flux total de 25~\%
+	seulement : la contribution des jonctions, d'environ 13~W/m (de 12,9 à 14,6~W/m selon le scénario),
+	ne dépend presque pas de l'isolant des murs. La température maximale des surfaces intérieures reste
+	de ce fait voisine de 28~\textdegree C au coin inférieur, sauf sans isolant (29,5~\textdegree C).
+	\item Le soleil sur le toit ajoute 59~\% au flux total. Une peinture claire divise exactement cette hausse
+	par deux ($+13{,}7$~W/m au lieu de $+27{,}4$~W/m).
+\end{itemize}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{scenarios_cartes}
+	\caption{Cartes de température des cinq scénarios, avec la même échelle de couleurs.}
+	\label{fig:cartes}
+\end{figure}
+
+\subsection{Confort sur une journée}
+Dans les simulations de cycle jour/nuit, l'intérieur n'est plus climatisé : l'air évolue librement et la
+surchauffe est mesurée par les degrés-heures $DH_{28}$ et $DH_{30}$ de l'équation~\eqref{eq:dh}. Cinq scénarios
+sont comparés : la référence (C0, absorption du toit de 0,6 et un renouvellement d'air par heure), la
+suppression de l'isolant (C1), un isolant plus performant (C2), un toit clair (C3, absorption de 0,3) et une
+ventilation nocturne (C4, cinq renouvellements d'air par heure de 20~h à 6~h). Le tableau~\ref{tab:confort} et
+la figure~\ref{fig:confort} donnent les résultats sur le dernier jour simulé.
+
+\begin{table}[ht]
+	\centering\small
+	\begin{tabular}{lccccccc}
+		\toprule
+		Scénario & T air (\textdegree C) & écart (\textdegree C) & ampl. (\textdegree C) & max (h) & $DH_{28}$ & $DH_{30}$ & écart $DH_{30}$ \\
+		\midrule
+		C0 référence & 31,04 & -- & 0,55 & 18,83 & 72,9 & 24,9 & -- \\
+		C1 sans isolant & 32,13 & $+1{,}09$ & 0,77 & 21,33 & 99,1 & 51,1 & $+105$~\% \\
+		C2 isolant performant & 30,79 & $-0{,}25$ & 0,51 & 18,50 & 66,9 & 18,9 & $-24$~\% \\
+		C3 toit clair & 30,52 & $-0{,}52$ & 0,50 & 18,67 & 60,5 & 12,5 & $-50$~\% \\
+		C4 ventilation nocturne & 29,41 & $-1{,}63$ & 1,25 & 20,00 & 33,8 & 2,4 & $-90$~\% \\
+		\bottomrule
+	\end{tabular}
+	\caption{Confort sur 24 h (régime périodique) : température moyenne de l'air, écart à la référence, amplitude,
+		heure du maximum et degrés-heures par jour ($^\circ$C\,h).}
+	\label{tab:confort}
+\end{table}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\textwidth]{cycle_comparaison}
+	\caption{Température de l'air intérieur sur 24 h pour les cinq scénarios (à gauche) et degrés-heures
+		au-dessus de 30~\textdegree C (à droite).}
+	\label{fig:confort}
+\end{figure}
+
+\begin{itemize}
+	\item Dans tous les scénarios, l'air oscille très peu (amplitude de 0,5 à 1,25~\textdegree C contre
+	5~\textdegree C à l'extérieur) : la masse du bâtiment lisse la journée, et le maximum de l'air
+	intervient en fin d'après-midi ou en soirée.
+	\item De C0 à C3, l'air reste au-dessus de 28~\textdegree C toute la journée : $DH_{28}$ vaut alors
+	simplement $24\times(\overline{T}_{\mathrm{air}}-28)$ et ne mesure que le niveau moyen. Le seuil de
+	30~\textdegree C est plus discriminant.
+	\item Le toit clair divise exactement par deux l'excès de chaleur au-dessus de 30~\textdegree C. Ce
+	résultat s'explique par le modèle : sans apports internes, l'air serait à la moyenne extérieure
+	(30~\textdegree C), et tout l'excès provient du rayonnement absorbé par le toit, proportionnel à
+	l'absorption (0,6 contre 0,3).
+	\item La ventilation nocturne est la mesure la plus efficace : $-1{,}63$~\textdegree C en moyenne,
+	$-90$~\% de degrés-heures, avec un air qui descend jusqu'à 28,1~\textdegree C. Elle exploite des
+	nuits plus fraîches (jusqu'à 25~\textdegree C) pour rafraîchir l'air et la masse du bâtiment.
+	\item Sans isolant, l'air est plus chaud de 1,1~\textdegree C, les degrés-heures doublent et le maximum
+	est décalé à 21~h~20.
+\end{itemize}
+
+Ces classements sont valables dans le cadre des hypothèses du modèle : le classement des solutions est plus
+fiable que les valeurs absolues. Un point mérite d'être signalé pour la ventilation nocturne : à 20~h,
+l'extérieur (31,3~\textdegree C) est encore plus chaud que l'air intérieur (environ 30,6~\textdegree C), si
+bien que la ventilation forte fait d'abord entrer de la chaleur, ce qui explique l'amplitude plus grande
+(1,25~\textdegree C) et le maximum à 20~h. Une ventilation commandée, déclenchée seulement quand l'extérieur
+est plus frais que l'intérieur, ferait mieux ; les petites marches visibles sur la courbe C4 à 6~h et à 20~h
+viennent du changement brutal de débit combiné à un air sans inertie propre.

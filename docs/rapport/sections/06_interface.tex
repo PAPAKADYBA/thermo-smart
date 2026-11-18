@@ -1,0 +1,78 @@
+\section{Interface de démonstration}\label{sec:interface}
+
+\subsection{Principe}
+Une interface web, écrite avec Streamlit, permet de modifier les paramètres du modèle et de relancer les
+calculs sans toucher au code. Elle n'introduit aucune formule nouvelle : elle écrit le fichier de paramètres,
+appelle le même script FreeFem++ que les calculs de validation, relit les résultats et les affiche. Les
+fonctions de lancement sont celles de \fichier{run_scenarios.py} (onglet « Pièce ») et de \fichier{run_cycles.py}
+(onglet « Confort sur 24 h »), appelées depuis \fichier{app.py} et \fichier{ui_confort.py}.
+
+L'interface comporte trois onglets :
+\begin{itemize}
+	\item \textbf{Pièce (régime stationnaire)} : des curseurs règlent l'isolant, les températures, le soleil sur
+	le toit et le vent ; un bouton « Calculer » lance le calcul et affiche la carte de température, le flux
+	entrant total comparé à la configuration de référence, les températures des surfaces intérieures et les
+	vérifications du calcul (bilan de flux, valeurs 1D loin des coins) ;
+	\item \textbf{Confort sur 24 h} : les cinq scénarios déjà calculés (courbes de la température de l'air et
+	tableau des degrés-heures) et un scénario personnalisé, calculé à la demande ;
+	\item \textbf{Hypothèses et limites} : rappel des simplifications du modèle.
+\end{itemize}
+
+\subsection{Paramètres}
+\begin{table}[ht]
+	\centering\small
+	\begin{tabular}{p{2.6cm}p{7.2cm}p{4.2cm}}
+		\toprule
+		Onglet & Paramètre & Plage \\
+		\midrule
+		Pièce & conductivité de l'isolant, ou case « sans isolant » & 0,020 à 0,100 W/(m\,K) \\
+		Pièce & température de l'air extérieur & 25 à 45~\textdegree C \\
+		Pièce & température intérieure maintenue & 18 à 30~\textdegree C \\
+		Pièce & ensoleillement sur le toit & 0 à 1\,000 W/m$^2$ \\
+		Pièce & absorption solaire du toit & 0,1 à 0,9 \\
+		Pièce & convection extérieure (vent) & 10 à 40 W/(m$^2$\,K) \\
+		Confort & scénarios précalculés & C0 à C4 (sélection multiple) \\
+		Confort & isolant et absorption du toit (scénario personnalisé) & mêmes plages que ci-dessus \\
+		Confort & renouvellements d'air par heure, de jour et de nuit (20~h à 6~h) & 0,5 à 10 \\
+		\bottomrule
+	\end{tabular}
+	\caption{Paramètres réglables dans l'interface.}
+	\label{tab:param}
+\end{table}
+
+Dans l'onglet « Pièce », la température équivalente du toit est calculée à partir de l'ensoleillement $I$ et de
+l'absorption $\alpha$ par la relation de l'équation~\eqref{eq:airsoleil}, $T_{\mathrm{toit}}=T_{\mathrm{ext}}+\alpha I/h_{\mathrm{ext}}$,
+et affichée sous les curseurs. Le calcul de l'onglet « Pièce » est rapide ; celui d'un scénario personnalisé
+simule 25~jours pour atteindre le régime périodique et demande de l'ordre d'une à deux minutes.
+
+\IfFileExists{figures/interface_piece.png}{%
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=\textwidth]{interface_piece}
+		\caption{Interface web, onglet « Pièce » : curseurs, indicateurs et carte de température.}
+		\label{fig:interface}
+\end{figure}}{}
+
+\subsection{Vérification de l'interface}
+L'interface a été vérifiée en retrouvant des résultats déjà validés. Avec la case « Sans isolant » cochée et les
+autres paramètres par défaut, l'onglet « Pièce » affiche un flux entrant de 243,6~W/m (soit $+423$~\% par
+rapport à la référence), une température moyenne des surfaces de 27,24~\textdegree C et une température
+maximale de 29,50~\textdegree C : ce sont exactement les valeurs du scénario S1 de la section~\ref{sec:resultats}.
+Dans l'onglet « Confort sur 24 h », un scénario personnalisé aux valeurs par défaut reproduit le scénario de
+référence C0, et avec cinq renouvellements d'air par heure la nuit il reproduit le scénario C4.
+
+\subsection{Lancement}
+L'application se lance depuis la racine du dépôt, avec un port choisi librement et une adresse limitée à
+l'ordinateur local, de sorte qu'elle n'est pas accessible depuis le réseau :
+{\footnotesize
+	\begin{verbatim}
+		streamlit run python/app.py --server.headless true \
+		--server.address 127.0.0.1 --server.port 8601
+\end{verbatim}}
+Elle s'ouvre ensuite dans un navigateur à l'adresse \texttt{http://localhost:8601}.
+
+\subsection{Limites de l'interface}
+Il s'agit d'une interface de démonstration pour un utilisateur à la fois : les calculs s'exécutent sur la
+machine locale et les résultats ne sont pas conservés d'une session à l'autre. Les scénarios précalculés
+supposent que les fichiers de résultats ont été générés au préalable par \fichier{run_cycles.py}. Les résultats
+affichés sont ceux du modèle simplifié décrit à la section~\ref{sec:limites}.

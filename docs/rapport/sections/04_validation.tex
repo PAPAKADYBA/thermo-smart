@@ -1,0 +1,144 @@
+\section{Validation}\label{sec:validation}
+Chaque étape est validée par un cas dont la solution est connue, ou par une grandeur conservée, avant d'être
+utilisée dans la suite.
+
+\subsection{Plaque en régime stationnaire}
+La plaque de $4\times3$~m, avec $T=30$~\textdegree C à gauche, $T=20$~\textdegree C à droite et des bords haut
+et bas isolés, a pour solution exacte $T(x)=30-2{,}5\,x$, affine, que les éléments P1 doivent reproduire
+exactement. Le calcul donne une erreur $L^2$ de $1{,}4\times10^{-12}$ et une erreur maximale de
+$6{,}8\times10^{-13}$~\textdegree C, soit la précision machine.
+
+\subsection{Convergence du solveur P1}
+Sur le même rectangle, on résout $-\nabla\!\cdot(\lambda\nabla T)=Q$ avec $\lambda=1$, $T=0$ sur tout le bord
+et un second membre $Q$ choisi pour que la solution exacte soit
+\begin{equation}
+T(x,y)=\sin\!\left(\frac{\pi x}{L}\right)\sin\!\left(\frac{\pi y}{H}\right),\qquad L=4,\ H=3 .
+\end{equation}
+Les erreurs mesurées sur quatre maillages emboîtés sont données dans le tableau~\ref{tab:convergence}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ccccc}
+\toprule
+$h$ (m) & erreur $L^2$ & ordre $L^2$ & erreur $H^1$ & ordre $H^1$ \\
+\midrule
+0,2   & $1{,}61\times10^{-2}$ & -- & $2{,}07\times10^{-1}$ & -- \\
+0,1   & $4{,}05\times10^{-3}$ & 1,994 & $1{,}03\times10^{-1}$ & 0,998 \\
+0,05  & $1{,}01\times10^{-3}$ & 1,999 & $5{,}18\times10^{-2}$ & 0,999 \\
+0,025 & $2{,}53\times10^{-4}$ & 2,000 & $2{,}59\times10^{-2}$ & 1,000 \\
+\bottomrule
+\end{tabular}
+\caption{Étude de convergence P1 : ordre 2 en norme $L^2$ et ordre 1 en norme $H^1$, conformes à la théorie.}
+\label{tab:convergence}
+\end{table}
+
+\subsection{Mur de trois couches en régime stationnaire}
+Pour le mur béton (0,20~m), isolant (0,10~m), plâtre (0,02~m), avec $T_{\mathrm{ext}}=35$~\textdegree C,
+$T_{\mathrm{int}}=25$~\textdegree C, $h_{\mathrm{ext}}=25$ et $h_{\mathrm{int}}=8$ W/(m$^2$\,K), la solution
+exacte s'obtient par les résistances thermiques en série :
+\begin{equation}
+R_{\mathrm{tot}}=\frac{1}{h_{\mathrm{ext}}}+\sum_i\frac{e_i}{\lambda_i}+\frac{1}{h_{\mathrm{int}}}=2{,}8479~\mathrm{m^2\,K/W},
+\qquad q=\frac{T_{\mathrm{ext}}-T_{\mathrm{int}}}{R_{\mathrm{tot}}}=3{,}5114~\mathrm{W/m^2}.
+\end{equation}
+Le calcul reproduit les températures exactes à chaque interface (tableau~\ref{tab:mur}), et le flux entrant par
+la face extérieure est égal au flux sortant par la face intérieure : $3{,}51141$~W/m$^2$ de chaque côté.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Position & calcul (\textdegree C) & exact (\textdegree C) \\
+\midrule
+face extérieure ($x=0$) & 34,8595 & 34,8595 \\
+béton / isolant ($x=0{,}20$~m) & 34,3579 & 34,3579 \\
+isolant / plâtre ($x=0{,}30$~m) & 25,5794 & 25,5794 \\
+face intérieure ($x=0{,}32$~m) & 25,4389 & 25,4389 \\
+\bottomrule
+\end{tabular}
+\caption{Mur de trois couches : températures calculées et exactes.}
+\label{tab:mur}
+\end{table}
+
+\subsection{Régime transitoire du mur}
+Le mur, initialement à 25~\textdegree C, est soumis à partir de $t=0$ à un extérieur à 35~\textdegree C. Après
+96~h, le champ de température retrouve la solution stationnaire du paragraphe précédent à
+$5{,}4\times10^{-4}$~\textdegree C près : le schéma d'Euler implicite converge vers le régime stationnaire déjà validé.
+
+\subsection{Cycle jour/nuit sur le mur}
+Le mur est soumis à la journée type de l'équation~\eqref{eq:text}, avec un intérieur à 25~\textdegree C, pendant
+cinq jours. Sur le dernier jour, le régime périodique est établi : l'écart entre deux jours consécutifs est
+de $3{,}4\times10^{-3}$~\textdegree C. Le problème étant linéaire, le flux moyen sur 24~h doit valoir
+$(T_{\mathrm{moy}}-T_{\mathrm{int}})/R_{\mathrm{tot}}=1{,}7557$~W/m$^2$ ; le calcul donne $1{,}7557$ en sortie
+et $1{,}7567$ en entrée, la différence représentant la chaleur encore stockée par le béton. Les moyennes sur
+24~h (29,93 ; 29,68 ; 25,29 et 25,22~\textdegree C) coïncident avec le profil stationnaire correspondant.
+
+Le tableau~\ref{tab:cyclemur} donne l'amplitude et le retard du maximum à chaque point.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcc}
+\toprule
+Point & amplitude (\textdegree C) & retard du maximum (h) \\
+\midrule
+air extérieur & 5,000 & 0 \\
+face extérieure & 3,341 & 1,17 \\
+béton / isolant & 1,637 & 6,33 \\
+isolant / plâtre & 0,099 & 7,50 \\
+face intérieure & 0,075 & 7,67 \\
+\bottomrule
+\end{tabular}
+\caption{Cycle jour/nuit sur le mur : l'amplitude décroît et le retard croît de l'extérieur vers l'intérieur.}
+\label{tab:cyclemur}
+\end{table}
+
+\paragraph{Contrôle analytique indépendant.} Pour du béton occupant un demi-espace, avec une excitation de
+pulsation $\omega=2\pi/86400$~s$^{-1}$, l'effusivité vaut $b=\sqrt{\lambda\rho c}=1646$~W\,s$^{1/2}$/(m$^2$\,K)
+et le rapport complexe entre la température de surface et celle de l'air est
+\begin{equation}
+\frac{\hat T_s}{\hat T_{\mathrm{ext}}}=\frac{h_{\mathrm{ext}}}{h_{\mathrm{ext}}+b\sqrt{\omega}\,e^{i\pi/4}} .
+\end{equation}
+Son module donne une amplitude de $3{,}44$~\textdegree C et sa phase un retard de $1{,}06$~h à la face
+extérieure, contre $3{,}34$~\textdegree C et $1{,}17$~h dans le calcul : l'écart de quelques pour cent est
+cohérent avec un mur d'épaisseur finie et isolé à l'arrière.
+
+\subsection{Pièce en 2D, régime stationnaire}
+Les contrôles d'aires valident le découpage en zones : aire totale $4{,}2048$~m$^2$, béton $2{,}976$,
+isolant $1{,}024$ et plâtre $0{,}2048$~m$^2$, toutes égales aux valeurs exactes. Loin des coins, au milieu
+d'un mur et au milieu du toit, la température de surface intérieure vaut $25{,}4389$~\textdegree C comme dans
+le calcul 1D du mur. Le bilan de flux est satisfait : $46{,}5971$~W/m entrent, autant sortent, avec un écart
+relatif de $1{,}4\times10^{-12}$.
+
+\paragraph{Principe du maximum.} La température maximale calculée vaut $35{,}0032$~\textdegree C, soit
+$0{,}003$~\textdegree C de plus que la température extérieure, ce qu'une pièce passive ne peut pas dépasser.
+Ce léger dépassement est localisé en $(x,y)=(0\ ;\ 3{,}04)$~m, sur la tranche du toit où la couche d'isolant
+est directement exposée à l'air extérieur : l'intégration de la condition de Robin en éléments finis P1 sur
+un matériau très peu conducteur peut produire un tel écart. Il est négligeable devant l'étendue des
+températures (10~\textdegree C) et ne modifie aucune conclusion, mais il est signalé à la section~\ref{sec:limites}.
+
+\subsection{Pièce en 2D, cycle jour/nuit}
+La masse thermique intérieure (dalle, plâtre), isolée de l'extérieur, a une constante de temps de plusieurs jours.
+La durée simulée nécessaire pour atteindre le régime périodique a donc été déterminée par essais successifs
+(tableau~\ref{tab:duree}), avec les critères suivants : écart de périodicité de l'air inférieur à
+$0{,}05$~\textdegree C et écart relatif des flux moyens entrant et sortant inférieur à $0{,}5\,\%$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccl}
+\toprule
+Essai & périodicité (\textdegree C) & écart des flux & verdict \\
+\midrule
+6 jours, départ à 28~\textdegree C & 0,21 & 66~\% & non convergé \\
+15 jours, départ à 30,6~\textdegree C & 0,0020 & 1,06~\% & flux hors critère \\
+25 jours, départ à 31~\textdegree C & $2{,}6\times10^{-5}$ & 0,014~\% & convergé \\
+\bottomrule
+\end{tabular}
+\caption{Durée de simulation nécessaire au régime périodique (scénario de référence).}
+\label{tab:duree}
+\end{table}
+
+Le bilan discret pas à pas, qui compare l'apport extérieur, la chaleur transmise à l'air et la variation
+du stockage, est vérifié à $5\times10^{-11}$~W/m dans les trois essais, ce qui prouve que le solveur est
+cohérent même lorsque le régime n'est pas encore périodique : ce sont les critères de régime établi qui
+détectaient la non-convergence. Enfin, le flux transmis à l'air, $3{,}8957$~W/m en moyenne, est bien égal
+aux pertes par ventilation $C_v\,(\bar T_{\mathrm{air}}-\bar T_{\mathrm{ext}})=3{,}752\times(31{,}04-30)=3{,}896$~W/m.
+Les cinq scénarios de la section~\ref{sec:resultats} ont tous satisfait ces critères.

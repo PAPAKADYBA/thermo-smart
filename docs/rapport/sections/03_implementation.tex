@@ -1,0 +1,57 @@
+\section{Implémentation}
+\providecommand{\fichier}[1]{\texttt{\detokenize{#1}}}
+
+\subsection{Outils}
+Le projet fonctionne sous Ubuntu 26.04 (WSL2 sous Windows). FreeFem++ (version~4.15) assure le maillage, la
+discrétisation en éléments finis P1 et la résolution ; Python~3.14, avec NumPy, Pandas et Matplotlib, lit les
+résultats, calcule les indicateurs et trace les figures ; Streamlit fournit l'interface web ; Git conserve
+l'historique des versions et \LaTeX{} sert à rédiger ce rapport.
+
+\subsection{Architecture}
+FreeFem++ calcule, Python orchestre et visualise. Les deux échangent des fichiers texte : FreeFem++ exporte,
+pour chaque scénario, la température en chaque nœud (colonnes $x$, $y$, $T$) et la connectivité des
+triangles, ce qui préserve le trou de l'air lors du tracé ; Python relit ces fichiers. Pour lancer un
+scénario, Python écrit un petit fichier de paramètres que le script FreeFem++ lit, appelle FreeFem++ et
+recueille un fichier de résumé contenant les indicateurs.
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{p{5.6cm}p{9.4cm}}
+\toprule
+Fichier & Rôle \\
+\midrule
+\fichier{01_mesh.edp}, \fichier{02_stationary.edp} & maillage d'une plaque et solveur stationnaire (cas test~1) \\
+\fichier{tests/convergence_P1.edp} & étude de convergence sur une solution fabriquée \\
+\fichier{02b_wall_stationary.edp} & mur de trois couches, convection de Robin, régime stationnaire \\
+\fichier{03_transient.edp} & même mur en régime transitoire (Euler implicite) \\
+\fichier{07_wall_daily_cycle.edp} & mur soumis à une journée type, régime périodique \\
+\fichier{05_room2d.edp}, \fichier{06_room2d_param.edp} & coupe de pièce en 2D, régime stationnaire (version paramétrée) \\
+\fichier{08_room2d_cycle.edp} & pièce 2D, cycle jour/nuit, air intérieur libre, soleil et ventilation \\
+\fichier{run_scenarios.py}, \fichier{run_cycles.py} & lancement automatique des scénarios et tableaux comparatifs \\
+\fichier{plot_*.py}, \fichier{plots.py} & figures \\
+\fichier{app.py}, \fichier{ui_confort.py} & interface Streamlit \\
+\bottomrule
+\end{tabular}
+\caption{Scripts principaux du dépôt.}
+\label{tab:scripts}
+\end{table}
+
+\subsection{Maillage}
+Le mur est maillé par une grille régulière de $32\times20$ mailles (1~cm dans l'épaisseur), soit 693 sommets et
+1\,280 triangles. La pièce est maillée par une grille régulière de mailles de 2~cm ($232\times166$) dont on
+retire la zone d'air ; il reste 11\,250 sommets et 21\,024 triangles. Toutes les épaisseurs de couche étant
+des multiples de la taille de maille, les interfaces entre matériaux coïncident avec des arêtes du maillage.
+Les bords du trou de l'air portent l'étiquette de frontière 5 (surfaces intérieures).
+
+\subsection{Matériaux et paramètres}
+Les propriétés $\lambda$ et $\rho c$ sont des fonctions constantes par triangle (éléments P0), évaluées au
+centre de chaque triangle. Des contrôles d'aires vérifient le découpage en zones. Les scénarios sont décrits
+dans des fichiers de configuration (\fichier{scenarios.json}, \fichier{cycle_scenarios.json}), de sorte que
+changer une conductivité, une absorption solaire ou un débit de ventilation ne demande aucune modification
+du code de calcul.
+
+\subsection{Résolution}
+Le système linéaire est résolu par une méthode directe (UMFPACK). Dans les simulations de cycle jour/nuit,
+la matrice est identique à chaque pas de temps : elle est factorisée une seule fois, et seul le second
+membre est recalculé, ce qui rend les 25 jours simulés par scénario réalisables en quelques minutes pour
+les cinq scénarios.
