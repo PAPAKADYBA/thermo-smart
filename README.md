@@ -63,7 +63,7 @@ est plus fiable que les valeurs absolues.
 
     sudo apt update
     sudo apt install freefem++ python3 python3-venv python3-pip git
-    git clone https://github.com/TON-PSEUDO/thermo-smart.git
+    git clone https://github.com/PAPAKADYBA/thermo-smart.git
     cd thermo-smart
     python3 -m venv .venv
     source .venv/bin/activate
