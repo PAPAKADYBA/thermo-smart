@@ -141,6 +141,10 @@ Les scénarios se définissent dans `config/scenarios.json` (régime stationnair
   dû à l'intégration de la convection en éléments finis P1.
 - Propriétés des matériaux : valeurs courantes de la littérature, à remplacer par des données mesurées pour une étude réelle.
 
+## Rapport scientifique
+
+Le rapport complet (modèle, méthode, validation, résultats, limites) est dans `docs/rapport/main.pdf`. Les sources LaTeX sont dans `docs/rapport/`.
+
 ## Auteur
 
 Papa Kady BA. Projet étudiant (UFR STA, Université Amadou Mahtar Mbow).
