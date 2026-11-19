@@ -1,0 +1,34 @@
+\section{Conclusion}\label{sec:conclusion}
+THERMO-SMART est une plateforme de simulation thermique qui résout l'équation de la chaleur par éléments finis P1
+avec FreeFem++, en régime stationnaire et transitoire, sur des parois multi-matériaux et sur une coupe de pièce en
+2D, puis compare des solutions d'isolation, de protection solaire et de ventilation. Chaque étape a été validée avant
+la suivante : ordre de convergence 2 en norme $L^2$ et 1 en norme $H^1$, températures exactes dans un mur de trois
+couches, bilans de flux à la précision machine, contrôle analytique du cycle jour/nuit et critères de régime
+périodique vérifiés sur chaque scénario.
+
+Les principaux résultats, valables dans le cadre des hypothèses du modèle, sont les suivants :
+\begin{itemize}
+	\item les ponts thermiques aux jonctions et au plancher ajoutent environ 13~W/m au flux entrant de la pièce
+	de référence (28~\% du total), presque indépendamment de l'isolant des murs ;
+	\item supprimer l'isolant double les degrés-heures au-dessus de 30~\textdegree C ($+105$~\%), alors qu'un isolant
+	plus performant les réduit de 24~\% ;
+	\item une peinture claire sur le toit divise par deux l'excès de chaleur dû au soleil ($-50$~\%) ;
+	\item la ventilation nocturne est la mesure la plus efficace : $-1{,}6$~\textdegree C en moyenne et $-90$~\% de
+	degrés-heures.
+\end{itemize}
+
+Une interface web permet de modifier les paramètres et de relancer les calculs, et l'ensemble du dépôt (scripts,
+configurations, définitions des cas tests, README) permet de reproduire chaque résultat. Les limites du modèle, en
+particulier l'absence de fenêtres, d'apports internes et de comparaison avec des mesures, sont détaillées à la
+section~\ref{sec:limites}, avec les pistes pour la suite : ventilation commandée, solutions contre les ponts
+thermiques, données météorologiques réelles et, après validation, apprentissage automatique pour accélérer
+l'exploration des configurations.
+
+\section*{Références utiles}
+\begin{itemize}
+	\item FreeFem++ : \url{https://freefem.org/}
+	\item Python : \url{https://docs.python.org/3/}
+	\item NumPy : \url{https://numpy.org/doc/}
+	\item Matplotlib : \url{https://matplotlib.org/stable/}
+	\item Streamlit : \url{https://docs.streamlit.io/}
+\end{itemize}

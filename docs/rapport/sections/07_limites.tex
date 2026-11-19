@@ -1,0 +1,53 @@
+\section{Limites et perspectives}\label{sec:limites}
+
+\subsection{Limites du modèle}
+Les résultats de ce rapport sont ceux d'un modèle volontairement simplifié. Les limites suivantes doivent
+être gardées en tête pour les interpréter.
+\begin{itemize}
+	\item \textbf{Géométrie.} Une coupe 2D d'une pièce de $4{,}00\times2{,}80$~m, avec des résultats par mètre de
+	profondeur : il ne s'agit pas d'une maison en 3D.
+	\item \textbf{Éléments absents.} Pas de fenêtre, pas de rayonnement solaire sur les murs, pas d'apports
+	internes (personnes, appareils), pas d'humidité ni d'échanges radiatifs complexes.
+	\item \textbf{Air intérieur.} L'air est représenté sans inertie propre, comme une moyenne pondérée entre les
+	surfaces et l'extérieur (équation~\eqref{eq:air}). Le changement brutal de ventilation à 6~h et à 20~h
+	produit de petites marches sur la courbe du scénario C4.
+	\item \textbf{Plancher.} Le bas de la dalle est supposé sans échange de chaleur, ce qui est une première
+	simplification : un sol réel échange avec la terre.
+	\item \textbf{Climat.} Une journée type sinusoïdale, répétée à l'identique, remplace des données
+	météorologiques mesurées ; le soleil est représenté par une température équivalente sur le toit seul.
+	\item \textbf{Matériaux.} Les propriétés thermiques sont des valeurs courantes de la littérature, à remplacer
+	par des données mesurées pour une étude réelle.
+	\item \textbf{Validation.} Le solveur est validé par des solutions exactes, des bilans de flux et un contrôle
+	analytique (section~\ref{sec:validation}), mais les résultats n'ont pas été comparés à des mesures sur un
+	bâtiment réel.
+	\item \textbf{Léger dépassement numérique.} La température maximale de la pièce de référence dépasse de
+	$0{,}003$~\textdegree C la température extérieure, en $(x,y)=(0\ ;\ 3{,}04)$~m, là où la couche d'isolant
+	touche l'air extérieur : c'est un artefact de l'intégration de la condition de Robin en éléments finis P1,
+	sans effet sur les conclusions.
+\end{itemize}
+Les résultats constituent une aide à l'étude : ils ne remplacent pas un calcul réglementaire. Le
+\emph{classement} des solutions est plus fiable que les valeurs absolues.
+
+\subsection{Perspectives}
+\begin{itemize}
+	\item \textbf{Fenêtres.} Ajouter un vitrage, par exemple sous la forme d'un matériau équivalent de
+	conductance donnée, et étudier la protection solaire des ouvertures.
+	\item \textbf{Ventilation commandée.} Déclencher la ventilation nocturne seulement quand l'extérieur est plus
+	frais que l'intérieur, ce qui devrait améliorer le scénario C4.
+	\item \textbf{Ponts thermiques.} Tester des solutions pour réduire la part des jonctions, qui représente environ
+	28~\% du flux total de la pièce de référence : isolation sous la dalle ou autour de la jonction mur/plancher.
+	\item \textbf{Données réelles.} Utiliser des données météorologiques de Dakar et, si possible, des mesures
+	de température dans un bâtiment pour calibrer et valider le modèle.
+	\item \textbf{Précision numérique.} Intégrer la convection avec une matrice condensée (« mass lumping ») pour
+	supprimer le léger dépassement signalé plus haut, et passer à un modèle 3D si nécessaire.
+	\item \textbf{Apports internes et inertie de l'air} : ajouter des sources de chaleur intérieures et une capacité
+	thermique de l'air et du mobilier.
+	\item \textbf{Intelligence artificielle.} Après validation du solveur, un modèle d'apprentissage pourrait
+	approximer rapidement les résultats de simulation ou rechercher des paramètres optimaux, par exemple en
+	minimisant un indicateur de surchauffe
+	\begin{equation}
+		J=\int_0^{t_f}\max\bigl(0,\,T_{\mathrm{int}}(t)-T_{\mathrm{confort}}\bigr)\,dt ,
+	\end{equation}
+	sous contraintes de coût, de faisabilité et de disponibilité des matériaux. Elle ne remplace ni les
+	équations physiques ni leur validation.
+\end{itemize}
